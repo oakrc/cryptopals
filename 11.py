@@ -17,14 +17,25 @@ def encryption_oracle(p: bytes) -> Tuple[int, bytes]:
         return (1, aes_128_cbc_encrypt(p, k, iv))
 
 
-p = aes_128_cbc_decrypt(read_b64('data/10.txt'),
-                        b'YELLOW SUBMARINE',
-                        b'\0'*16)
+def test_input(src: bytes, show_results: bool = False):
+    successes = 0
+    for _ in range(100):
+        mode, cipher = encryption_oracle(src)
+        prediction = 0 if detect_ecb(cipher) else 1
+        if mode == prediction:
+            successes += 1
+            if show_results:
+                print(mode, '=>', prediction)
 
-successes = 0
-for _ in range(100):
-    mode, cipher = encryption_oracle(p)
-    if mode == 0 if detect_ecb(cipher) else 1:
-        successes += 1
+    print('Success rate: ' + str(successes) + '%')
 
-print('Success rate: ' + str(successes) + '%')
+
+def main():
+    p = aes_128_cbc_decrypt(read_b64('data/10.txt'),
+                            b'YELLOW SUBMARINE',
+                            b'\0'*16)
+    test_input(p, show_results=True)
+
+
+if __name__ == "__main__":
+    main()
