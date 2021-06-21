@@ -64,7 +64,7 @@ def solve_xor_rep(c: bytes, num_keys=8) -> list[str]:
 
 
 def main():
-    print(solve_xor_rep(read_b64('data/6.txt'), 4))
+    print(solve_xor_rep(read_b64('data/06.txt'), 4))
 
 
 if __name__ == "__main__":

@@ -53,7 +53,7 @@ def solve_simple_xor(c: bytes) -> tuple:
     return res
 
 
-with open('data/4.txt', 'r') as f:
+with open('data/04.txt', 'r') as f:
     ciphers = [bytes.fromhex(c) for c in f.read().split('\n')]
 
 best = ('', '', '', 99999)

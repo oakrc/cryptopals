@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from base64 import b64decode
 from collections import Counter
 
 
@@ -15,7 +14,7 @@ def detect_ecb(c: bytes) -> bool:
     return True if max(freq.values()) > 1 else False
 
 
-with open('data/8.txt', 'r') as f:
+with open('data/08.txt', 'r') as f:
     cs = [bytes.fromhex(c) for c in filter(None, f.read().split('\n'))]
 
 for c in cs:
