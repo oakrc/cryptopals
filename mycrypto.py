@@ -26,16 +26,19 @@ def xor_rep(m: bytes, k: bytes) -> bytes:
     return bytes([ch ^ k[i % len(k)] for i, ch in enumerate(m)])
 
 
+eng_regex = '^[A-Za-z !\'"?:()-/\\.;,]+$'
+eng_regex_full = '^[A-Za-z !\'"?:()\\[\\]-_/@{}\\*\\.;,]+$'
+
 # English letter frequency
-engfreq = {
+eng_freq = {
     'e': 12.0, 't': 9.10, 'a': 8.12, 'o': 7.68, 'i': 7.31,
     'n': 6.95, 's': 6.28, 'r': 6.02, 'h': 5.92, 'd': 4.32,
     'l': 3.98, 'u': 2.88, 'c': 2.71, 'm': 2.61, 'f': 2.30,
     'y': 2.11, 'w': 2.09, 'g': 2.03, 'p': 1.82, 'b': 1.49,
     'v': 1.11, 'k': 0.69, 'x': 0.17, 'q': 0.11, 'j': 0.10, 'z': 0.07
 }
-for i in engfreq:
-    engfreq[i] /= 100
+for i in eng_freq:
+    eng_freq[i] /= 100
 
 
 # lower score means closer to english
@@ -45,14 +48,14 @@ def score(m: bytes, adjusted=True) -> float:
 
     mfreq = Counter(m.lower())
     alphas = 0  # number of letters in m
-    for a in engfreq:
+    for a in eng_freq:
         alphas += mfreq[ord(a)]
         logging.debug(alphas)
 
     # calculate chi squared score
-    for a in engfreq:
+    for a in eng_freq:
         observed = mfreq[ord(a)]
-        expected = engfreq[a] * alphas
+        expected = eng_freq[a] * alphas
         if expected == 0:
             logging.debug("Zero expected letters")
             chi += 30000
@@ -68,34 +71,34 @@ def score(m: bytes, adjusted=True) -> float:
 
 
 # PKCS#7 padding
-# assuming bs = 16
-def pad(m: bytes, bs: int = 16):
+def pad(m: bytes, bs: int = 16) -> bytes:
     pad_len = bs - len(m) % bs
     return m + pad_len * bytes([pad_len])
 
 
 # undo PKCS#7 padding
-# assuming bs = 16
 def unpad(m: bytes) -> bytes:
     return m[:-m[-1]]
 
 
 # chop message into blocks of size bs
-# m is padded
+# m should be padded beforehand
 def chop(m: bytes, bs: int = 16) -> list[bytes]:
     return [m[i:i + bs] for i in range(0, len(m), bs)]
 
 
 def xor(a: bytes, b: bytes) -> bytes:
     if len(a) != len(b):
-        raise Exception("XORing str's of unequal length is not allowed.")
+        raise Exception("XORing bytes of unequal length is not allowed.")
     return bytes([i ^ j for i, j in zip(a, b)])
 
 
 def aes_128_ecb_encrypt(src: bytes, k: bytes) -> bytes:
-    src = pad(src)
-    aes = AES.new(k, AES.MODE_ECB)
-    return aes.encrypt(src)
+    sink = b''
+    for block in chop(pad(src)):
+        aes = AES.new(k, AES.MODE_ECB)
+        sink += aes.encrypt(block)
+    return sink
 
 
 # https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)
@@ -135,7 +138,10 @@ def aes_128_cbc_works(m: bytes, k: bytes, iv: bytes = b'\0'*16):
 
 
 # returns True if ECB is likely used
-def detect_ecb(c: bytes) -> bool:
+# super basic method, so only works
+# when plaintext is user-controlled
+# so we can inject tons of repeating chars
+def detect_ecb_basic(c: bytes) -> bool:
     freq = Counter(chop(c))
     # if there are any repeating blocks then return true
     return True if max(freq.values()) > 1 else False

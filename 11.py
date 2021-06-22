@@ -3,7 +3,7 @@ import secrets
 from typing import Tuple
 
 from mycrypto import (aes_128_cbc_decrypt, aes_128_cbc_encrypt,
-                      aes_128_ecb_encrypt, detect_ecb, read_b64)
+                      aes_128_ecb_encrypt, detect_ecb_basic, read_b64)
 
 
 def encryption_oracle(p: bytes) -> Tuple[int, bytes]:
@@ -21,7 +21,7 @@ def test_input(src: bytes, show_results: bool = False):
     successes = 0
     for _ in range(100):
         mode, cipher = encryption_oracle(src)
-        prediction = 0 if detect_ecb(cipher) else 1
+        prediction = 0 if detect_ecb_basic(cipher) else 1
         if mode == prediction:
             successes += 1
             if show_results:
