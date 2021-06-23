@@ -1,14 +1,10 @@
 import secrets
-from string import printable
-import re
 from collections import Counter
 
-from mycrypto import (aes_128_ecb_encrypt, chop, detect_ecb_basic, read_b64,
-                      score, eng_regex)
+from mycrypto import aes_128_ecb_encrypt, chop, detect_ecb_basic, read_b64
 
 k = secrets.token_bytes(16)
 suffix = read_b64('data/12.txt')
-print(score(suffix))
 
 
 def oracle(p: bytes) -> bytes:
@@ -24,15 +20,39 @@ def guess_bs() -> int:
     return -1
 
 
-assert guess_bs() == 16
-bs = 16
-assert detect_ecb_basic(oracle(b'a'*16*4))
-
-
+def solve_ecb_suffix(bs: int) -> bytes:
+    suffix = b''
+    prev = b'a' * bs
+    # might not be accurate due to padding but whatever
+    num_blocks = len(chop(oracle(b'')))
+    # i is the block where the leak is happening
+    for i in range(num_blocks):
+        known = b''
+        while len(known) < bs:
+            input_block = prev[len(known) + 1:]
+            leak = chop(oracle(input_block))[i]
+            lookup = {}
+            for guess in range(128):
+                plain = input_block + known + bytes([guess])
+                outcome = chop(oracle(plain))[0]
+                lookup[outcome] = guess
+            try:
+                known += bytes([lookup[leak]])
+            except Exception:
+                # hit the padding
+                # last byte is unneeded
+                return (suffix + known)[:-1]
+        assert len(known) == bs
+        suffix += known
+        prev = known
+    return suffix
 
 
 def main():
-    solve_ecb_basic()
+    bs = guess_bs()
+    assert bs == 16
+    assert detect_ecb_basic(oracle(b'a' * bs * 4))
+    print(solve_ecb_suffix(bs).decode('ascii'))
 
 
 if __name__ == "__main__":

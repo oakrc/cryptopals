@@ -94,11 +94,14 @@ def xor(a: bytes, b: bytes) -> bytes:
 
 
 def aes_128_ecb_encrypt(src: bytes, k: bytes) -> bytes:
-    sink = b''
-    for block in chop(pad(src)):
-        aes = AES.new(k, AES.MODE_ECB)
-        sink += aes.encrypt(block)
-    return sink
+    src = pad(src)
+    aes = AES.new(k, AES.MODE_ECB)
+    return aes.encrypt(src)
+
+
+def aes_128_ecb_decrypt(src: bytes, k: bytes) -> bytes:
+    aes = AES.new(k, AES.MODE_ECB)
+    return unpad(aes.decrypt(src))
 
 
 # https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)
