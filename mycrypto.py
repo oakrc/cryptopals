@@ -140,11 +140,15 @@ def aes_128_cbc_works(m: bytes, k: bytes, iv: bytes = b'\0'*16):
     return m == pt
 
 
+# count maximum number of identical blocks
+def max_dupe_blks(c: bytes, bs: int = 16) -> int:
+    freq = Counter(chop(c, bs))
+    return max(freq.values())
+
+
 # returns True if ECB is likely used
 # super basic method, so only works
 # when plaintext is user-controlled
 # so we can inject tons of repeating chars
 def detect_ecb_basic(c: bytes) -> bool:
-    freq = Counter(chop(c))
-    # if there are any repeating blocks then return true
-    return True if max(freq.values()) > 1 else False
+    return True if max_dupe_blks(c) > 1 else False

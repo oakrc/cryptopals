@@ -11,6 +11,7 @@ def oracle(p: bytes) -> bytes:
     return aes_128_ecb_encrypt(p + suffix, k)
 
 
+# only works without prefix
 def guess_bs() -> int:
     for bs in range(4, 64):
         c = oracle(b'a' * bs * 2)
