@@ -1,0 +1,17 @@
+set plaintext to ['']
+-- (starting from 1) because i = 0 -> iv
+for each cipher_block at i:
+    set plain_block to ''
+    for each cipher_byte at j (15 -> 0):
+        set temp to cipher
+        -- set up padding bytes
+        for each byte at k in temp[i-1][j+1:]:
+            set temp[i-1][k] to plain_block[i][k] ^ cipher_block[i-1][k] ^ (16 - j)
+        for each possible byte b:
+            set temp[i-1][j] to b
+            if temp[:i+1] has valid padding:
+                -- D([i]) = [i-1]' xor 0x01
+                -- (i-1,j)' xor 0x01 xor (i-1,j) = P[i][j]
+                plain_block = b ^ (16 - j) ^ cipher[i-1][j] + plain_block
+                break
+    plaintext.append(plain_block)
