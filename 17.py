@@ -1,7 +1,7 @@
 import secrets
 from base64 import b64decode
 
-from mycrypto import aes_128_cbc_decrypt, aes_128_cbc_encrypt, chop
+from mycrypto import PaddingError, aes_128_cbc_decrypt, aes_128_cbc_encrypt, chop, unpad
 
 with open('data/17.txt', 'rb') as f:
     strings = list(filter(None, f.read().split(b'\n')))
@@ -22,7 +22,7 @@ def decrypt(data: bytes) -> bool:
         c = b''.join(blocks[1:])
         aes_128_cbc_decrypt(c, k, iv)
         return True
-    except Exception:
+    except PaddingError:
         return False
 
 
@@ -33,24 +33,29 @@ def main():
     for i in range(1, len(cipher)):
         plain_block = bytearray(b'\0' * 16)
         for j in reversed(range(16)):
-            print(j)
             test = cipher[:i+1]
+            test[i-1] = bytearray(secrets.token_bytes(16))
             for k in range(j + 1, 16):
                 test[i-1][k] = plain_block[k] ^ cipher[i-1][k] ^ (16 - j)
             done = False
-            for byte in range(10, 256):
+            for byte in range(256):
                 test[i-1][j] = byte
                 if decrypt(b''.join(test)):
                     plain_block[j] = byte ^ (16 - j) ^ cipher[i-1][j]
                     done = True
-                    print('->', plain_block[j])
-                    print('-----------------------')
                     break
             if not done:
-                raise Exception("Correct padding not found")
+                raise Exception("Correct byte not found")
         plain.append(plain_block)
-    print(b''.join(plain))
+    print(unpad(b''.join(plain)))
 
 
 if __name__ == "__main__":
-    main()
+    while True:
+        try:
+            main()
+        except Exception:
+            print('----- Failed -----')
+        else:
+            print('----- Worked -----')
+            exit(0)

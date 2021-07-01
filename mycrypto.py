@@ -76,13 +76,18 @@ def pad(m: bytes, bs: int = 16) -> bytes:
     return m + pad_len * bytes([pad_len])
 
 
+class PaddingError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+
 # undo PKCS#7 padding
 def unpad(m: bytes) -> bytes:
     if m[-1] == 0:
         return m
     padding = m[-m[-1]:]
     if padding[:-1] != padding[1:]:
-        raise Exception("Invalid padding")
+        raise PaddingError("Invalid padding")
     return m[:-m[-1]]
 
 
