@@ -10,5 +10,5 @@ Each challenge `num` may contain 1 or more of the following
 
 # Prerequisites
 ```sh
-pip install pycrypto
+pip install pycryptodome
 ```

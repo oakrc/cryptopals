@@ -6,9 +6,9 @@ from collections import Counter
 from Crypto.Cipher import AES
 
 
-# (c, k, m, s)
 def solve_simple_xor(c: bytes) -> tuple:
-    res = (c, b'', b'', 999999)
+    # (cipher, key, message, score)
+    res = (c, b'', b'', float('inf'))
     for k in range(20, 127):
         try:
             m = bytes([i ^ k for i in c])
@@ -44,29 +44,26 @@ for i in eng_freq:
 
 # lower score means closer to english
 # m = message
-def score(m: bytes, adjusted=True) -> float:
+def score(m: bytes) -> float:
     chi = 0
 
-    mfreq = Counter(m.lower())
-    alphas = 0  # number of letters in m
+    dist = Counter(m.lower())
+    alphas = 0  # number of alpha chars in m
     for a in eng_freq:
-        alphas += mfreq[ord(a)]
-        logging.debug(alphas)
+        alphas += dist[ord(a)]
+
+    logging.debug(f'score: message contains {alphas} latin characters')
 
     # calculate chi squared score
     for a in eng_freq:
-        observed = mfreq[ord(a)]
+        observed = dist[ord(a)]
         expected = eng_freq[a] * alphas
         if expected == 0:
             logging.debug("Zero expected letters")
-            chi += 30000
+            chi = float('inf')
+            break
         else:
             chi += (observed - expected) ** 2 / expected
-
-    # encourage letters and discourage symbols
-    # too lazy to improve this
-    if adjusted:
-        chi += 3 * (sum(mfreq.values()) - alphas - mfreq[ord(' ')])
 
     return chi
 
@@ -84,8 +81,6 @@ class PaddingError(Exception):
 
 # undo PKCS#7 padding
 def unpad(m: bytes) -> bytes:
-    if m[-1] == 0:
-        return m
     padding = m[-m[-1]:]
     if padding[:-1] != padding[1:]:
         raise PaddingError("Invalid padding")

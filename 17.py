@@ -18,9 +18,8 @@ def encrypt() -> bytes:
 
 def decrypt(data: bytes) -> bool:
     try:
-        blocks = chop(data)
-        iv = blocks[0]
-        c = b''.join(blocks[1:])
+        iv = data[:16]
+        c = data[16:]
         aes_128_cbc_decrypt(c, k, iv)
         return True
     except PaddingError:
@@ -55,7 +54,8 @@ if __name__ == "__main__":
     while True:
         try:
             main()
-        except Exception:
+        except Exception as e:
+            print(e)
             print('----- Failed -----')
         else:
             print('----- Worked -----')
