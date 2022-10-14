@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import random
 from mycrypto import aes_128_ecb_encrypt, chop, max_dupe_blks, read_b64
 import secrets

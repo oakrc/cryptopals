@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import secrets
 from mycrypto import aes_128_ecb_decrypt, aes_128_ecb_encrypt, chop, pad
 

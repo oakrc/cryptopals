@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from Crypto.Cipher import AES
 
 from mycrypto import chop, pad, read_b64, unpad

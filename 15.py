@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # undo PKCS#7 padding
 def unpad(m: bytes) -> bytes:
     padding = m[-m[-1]:]

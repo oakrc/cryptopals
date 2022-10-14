@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import secrets
 from base64 import b64decode
 

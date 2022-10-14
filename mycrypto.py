@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import logging
 from base64 import b64decode
 from collections import Counter

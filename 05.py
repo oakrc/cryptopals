@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # repeating-key xor
 # m = message (plaintext / message)
 # k = key

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from mycrypto import read_b64, score, solve_simple_xor, xor_rep
 
 

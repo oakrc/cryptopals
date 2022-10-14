@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # PKCS#7 padding
 # assuming bs = 16
 def pad(m: bytes):
