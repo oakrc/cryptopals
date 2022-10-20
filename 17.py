@@ -2,11 +2,12 @@
 import secrets
 from base64 import b64decode
 
-from mycrypto import PaddingError, aes_128_cbc_decrypt, aes_128_cbc_encrypt, chop, unpad
+from mycrypto import PaddingError, aes_128_cbc_decrypt, aes_128_cbc_encrypt, chop, read_b64s, unpad
 
-with open('data/17.txt', 'rb') as f:
-    strings = list(filter(None, f.read().split(b'\n')))
-    strings = [b64decode(s) for s in strings]
+# with open('data/17.txt', 'rb') as f:
+#     strings = list(filter(None, f.read().split(b'\n')))
+#     strings = [b64decode(s) for s in strings]
+strings = read_b64s('data/17.txt')
 k = secrets.token_bytes(16)
 
 
@@ -51,12 +52,4 @@ def main():
 
 
 if __name__ == "__main__":
-    while True:
-        try:
-            main()
-        except Exception as e:
-            print(e)
-            print('----- Failed -----')
-        else:
-            print('----- Worked -----')
-            exit(0)
+    main()

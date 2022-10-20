@@ -2,6 +2,8 @@
 import logging
 from base64 import b64decode
 from collections import Counter
+from pwn import p64
+import string
 
 from Crypto.Cipher import AES
 
@@ -44,28 +46,35 @@ for i in eng_freq:
 
 # lower score means closer to english
 # m = message
-def score(m: bytes) -> float:
+def score(src: bytes) -> float:
+    if len(src) == 0:
+        return float('inf')
     chi = 0
+    m = src
 
+    # unprintable text cannot be English
+    for ch in m:
+        if ch not in string.printable.encode('ascii'):
+            return float('inf')
+
+    # removing non-latin characters
+    m = src.translate(None, string.punctuation.encode('ascii'))
+    m = m.translate(None, string.whitespace.encode('ascii'))
+    m = m.translate(None, string.digits.encode('ascii'))
+    if len(m) == 0:
+        return float('inf')
+
+    # calculate letter frequency in message
     dist = Counter(m.lower())
-    alphas = 0  # number of alpha chars in m
-    for a in eng_freq:
-        alphas += dist[ord(a)]
-
-    logging.debug(f'score: message contains {alphas} latin characters')
 
     # calculate chi squared score
     for a in eng_freq:
-        observed = dist[ord(a)]
-        expected = eng_freq[a] * alphas
-        if expected == 0:
-            logging.debug("Zero expected letters")
-            chi = float('inf')
-            break
-        else:
-            chi += (observed - expected) ** 2 / expected
+        observed = dist[ord(a)] / len(m)
+        expected = eng_freq[a]
+        chi += (observed - expected) ** 2 / expected
 
-    return chi
+    # scale score based on how many non-English characters were removed
+    return chi / (len(m) / len(src))
 
 
 # PKCS#7 padding
@@ -133,11 +142,29 @@ def aes_128_cbc_decrypt(src: bytes, k: bytes, iv: bytes) -> bytes:
     return unpad(sink)
 
 
+def aes_128_ctr_crypt(src: bytes, k: bytes, nonce: bytes) -> bytes:
+    sink = b''
+    blocks = chop(src)
+    for i, block in enumerate(blocks):
+        aes = AES.new(k, AES.MODE_ECB)
+        block_key = aes.encrypt(nonce + p64(i))
+        sink += xor_rep(block, block_key)
+    return sink
+
+
 def read_b64(filename: str) -> bytes:
     with open(filename, 'r') as f:
         c = f.read()
         c = b64decode(c)
     return c
+
+def read_b64s(filename: str) -> list[bytes]:
+    decoded = []
+    with open(filename, 'r') as f:
+        for line in f.readlines():
+            decoded.append(b64decode(line.rstrip()))
+    return decoded
+
 
 
 def aes_128_cbc_works(m: bytes, k: bytes, iv: bytes = b'\0'*16):

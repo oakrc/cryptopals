@@ -1,0 +1,18 @@
+#+title: Breaking CTR with fixed nonces
+#+roam_tags:
+
+* Brainstorm
+- Fixed nonces + same key = same keystream
+
+* Guess keystream one byte at a time
+- For each block of cipher
+- Let known_key = 0
+- For each char pos i (not exceeding the longest cipher)
+  - Let best = (kb, score)
+  - For each possible key byte kb
+    - Let sum = 0
+    - For each cipher (that are long enough)
+      - plain_guess = xor(kb XOR cipher[i])
+      - Increase sum by the score(plain_guess)
+    - If current score less than best, best = current
+  - known_key += best.kb
