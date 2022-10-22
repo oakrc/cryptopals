@@ -10,5 +10,6 @@ Each challenge `num` may contain 1 or more of the following
 
 # Prerequisites
 ```sh
-pip install pycryptodome
+pip install pycryptodome 
+pip install pwntools # because I'm too lazy to use struct
 ```

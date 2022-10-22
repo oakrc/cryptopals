@@ -9,3 +9,5 @@ k = secrets.token_bytes(16)
 ciphers = [aes_128_ctr_crypt(m, k, b'\x00'*8) for m in messages]
 ciphers = sorted(ciphers, key=len)
 print([len(c) for c in ciphers])
+
+# Screw this. Onto 20.

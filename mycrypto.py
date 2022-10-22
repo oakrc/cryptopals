@@ -7,18 +7,19 @@ import string
 
 from Crypto.Cipher import AES
 
+logging.basicConfig()
 
 def solve_simple_xor(c: bytes) -> tuple:
     # (cipher, key, message, score)
     res = (c, b'', b'', float('inf'))
-    for k in range(20, 127):
+    for k in range(256):
         try:
             m = bytes([i ^ k for i in c])
             s = score(m)
             if s < res[3]:
                 res = (c, bytes([k]), m, s)
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
     return res
 
 
@@ -38,7 +39,12 @@ eng_freq = {
     'n': 6.95, 's': 6.28, 'r': 6.02, 'h': 5.92, 'd': 4.32,
     'l': 3.98, 'u': 2.88, 'c': 2.71, 'm': 2.61, 'f': 2.30,
     'y': 2.11, 'w': 2.09, 'g': 2.03, 'p': 1.82, 'b': 1.49,
-    'v': 1.11, 'k': 0.69, 'x': 0.17, 'q': 0.11, 'j': 0.10, 'z': 0.07
+    'v': 1.11, 'k': 0.69, 'x': 0.17, 'q': 0.11, 'j': 0.10, 'z': 0.07,
+}
+eng_punct = {
+    # approximated:
+    '.': 0.01, ',': 0.01, '"': 0.004,'\'':0.004,'-': 0.003,'!': 0.001,
+    ':': 0.001,';': 0.001
 }
 for i in eng_freq:
     eng_freq[i] /= 100
@@ -58,9 +64,8 @@ def score(src: bytes) -> float:
             return float('inf')
 
     # removing non-latin characters
-    m = src.translate(None, string.punctuation.encode('ascii'))
-    m = m.translate(None, string.whitespace.encode('ascii'))
-    m = m.translate(None, string.digits.encode('ascii'))
+    nonlatin = string.whitespace + string.punctuation + string.digits
+    m = src.translate(None, nonlatin.encode('ascii'))
     if len(m) == 0:
         return float('inf')
 
@@ -74,7 +79,8 @@ def score(src: bytes) -> float:
         chi += (observed - expected) ** 2 / expected
 
     # scale score based on how many non-English characters were removed
-    return chi / (len(m) / len(src))
+    ratio = len(m) / len(src)
+    return chi / ratio
 
 
 # PKCS#7 padding
@@ -185,3 +191,25 @@ def max_dupe_blks(c: bytes, bs: int = 16) -> int:
 # so we can inject tons of repeating chars
 def detect_ecb_basic(c: bytes) -> bool:
     return True if max_dupe_blks(c) > 1 else False
+
+
+def transpose(blocks: list[bytes]) -> list[bytes]:
+    transposed = []
+    for i in range(len(blocks[0])):
+        row = bytearray()
+        for block in blocks:
+            try:
+                row.append(block[i])
+            except Exception:
+                break
+        transposed.append(bytes(row))
+    return transposed
+
+
+# c = ciphertext
+# ks = keysize
+# returns key
+def solve_xor_rep_ks(c: bytes, ks: int) -> bytes:
+    blocks = transpose(chop(c, ks))
+    key = b''.join([solve_simple_xor(b)[1] for b in blocks])
+    return key
