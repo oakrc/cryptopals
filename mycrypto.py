@@ -3,6 +3,7 @@ import logging
 from base64 import b64decode
 from collections import Counter
 from pwn import p64
+import time
 import string
 
 from Crypto.Cipher import AES
@@ -279,3 +280,8 @@ class MT19937:
 
     def set(self, i: int, y: int):
         self.MT[i] = y
+
+
+
+def unix_time():
+    return int(time.time())
