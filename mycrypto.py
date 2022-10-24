@@ -215,6 +215,8 @@ def solve_xor_rep_ks(c: bytes, ks: int) -> bytes:
     return key
 
 
+# 32-bit MT19937
+# See Wikipedia article for psuedocode
 class MT19937:
     w, n, m, r = 32, 624, 397, 31
     a = 0x9908b0df
@@ -255,8 +257,25 @@ class MT19937:
         y = y ^ (y >> self.l)
 
         self.index += 1
-        return (self.lowest_bits(y, self.w))
+
+        k = (self.lowest_bits(y, self.w))
+        self.untemper(k)
+        return k
 
     def lowest_bits(self, n: int, bits: int):
         mask = (1 << bits) - 1
         return n & mask
+
+    def untemper(self, y: int) -> int:
+        y ^= y >> self.l
+        y ^= (y << self.t & self.c)
+        # I tried... https://nayak.io/posts/mersenne_twister/
+        for i in range(1,5):
+            b = self.b & (0b1111111 << (i * 7))
+            y ^= (y << self.s & b)
+        for i in range(3):
+            y ^= y >> self.u
+        return y
+
+    def set(self, i: int, y: int):
+        self.MT[i] = y
