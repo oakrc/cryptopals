@@ -152,6 +152,7 @@ def aes_128_cbc_decrypt(src: bytes, k: bytes, iv: bytes) -> bytes:
 def aes_128_ctr_encrypt(src: bytes, k: bytes, nonce: bytes) -> bytes:
     sink = b''
     blocks = chop(src)
+    assert(len(nonce) == 8)
     for i, block in enumerate(blocks):
         aes = AES.new(k, AES.MODE_ECB)
         block_key = aes.encrypt(nonce + p64(i))
@@ -161,6 +162,7 @@ def aes_128_ctr_encrypt(src: bytes, k: bytes, nonce: bytes) -> bytes:
 def aes_128_ctr_decrypt(src: bytes, k: bytes, nonce: bytes) -> bytes:
     sink = b''
     blocks = chop(src)
+    assert(len(nonce) == 8)
     for i, block in enumerate(blocks):
         aes = AES.new(k, AES.MODE_ECB)
         block_key = aes.encrypt(nonce + p64(i))

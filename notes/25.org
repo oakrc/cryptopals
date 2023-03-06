@@ -1,0 +1,43 @@
+#+title: Break "random access read/write" AES CTR
+
+* Edit Function
+** Multi-byte Edit Function
+- nonce is generated randomly, taken from global scope
+-----
+- chop ct into 16
+- starting block number = idx // 16
+- ending block number = starting block number + len(new) // 16
+-
+- padded_new_text = pad new_text up (prepend null bytes, to be replaced after decrypting first block)
+  - initial block
+    - initial pad len = idx % 16 (save this for later)
+    - padded_new_text = prepend new_text with pan len number of null bytes, to be replaced by real pt
+  - final block
+    - assuming that new_text is unmodified (only padded_new_text is modified)
+    - final pad len = 16 - (idx + len(new_text)) % 16 = -(idx + len(new_text)) % 16
+      - save this for later
+    - append final pad len number of null bytes to be replaced by real pt later
+- new_text_blocks = chop(padded_new_text)
+- for initial new text block:
+  - decrypt first block for plaintext
+  - new_text_blocks[0][:initial_pad_len] = first_pt_block[:initial_pad_len]
+- for the ending block:
+  - decrypt last block of plaintext that needs editing (see notes ln 10)
+  - new_text_blocks[-1][-final_pad_len:] = first_pt_block[-final_pad_len:]
+- now new_text_blocks can be encrypted and used to replace ciphertext blocks
+- for each cipher text block that needs editing:
+  - ... encrypt and replace. not much to it.
+-----
+I'd just realized that maybe this wasn't what the problem asked for
+** Single-byte Edit Function
+- chop ct into 16
+- block_number = idx // 16
+- byte number in block to edit = idx % 16
+- ... basically trivial
+* Breaking RARW
+Original byte = plain XOR key byte
+Choose a random byte B
+New byte = B XOR key byte
+original byte XOR new byte = plain XOR B
+original byte XOR new byte XOR B = plain byte
+We can just make B = null, then original byte XOR new byte = plain byte
