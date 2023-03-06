@@ -149,7 +149,7 @@ def aes_128_cbc_decrypt(src: bytes, k: bytes, iv: bytes) -> bytes:
     return unpad(sink)
 
 
-def aes_128_ctr_crypt(src: bytes, k: bytes, nonce: bytes) -> bytes:
+def aes_128_ctr_encrypt(src: bytes, k: bytes, nonce: bytes) -> bytes:
     sink = b''
     blocks = chop(src)
     for i, block in enumerate(blocks):
@@ -158,6 +158,14 @@ def aes_128_ctr_crypt(src: bytes, k: bytes, nonce: bytes) -> bytes:
         sink += xor_rep(block, block_key)
     return sink
 
+def aes_128_ctr_decrypt(src: bytes, k: bytes, nonce: bytes) -> bytes:
+    sink = b''
+    blocks = chop(src)
+    for i, block in enumerate(blocks):
+        aes = AES.new(k, AES.MODE_ECB)
+        block_key = aes.encrypt(nonce + p64(i))
+        sink += xor_rep(block, block_key)
+    return sink
 
 def read_b64(filename: str) -> bytes:
     with open(filename, 'r') as f:
