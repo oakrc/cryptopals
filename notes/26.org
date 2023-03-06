@@ -1,0 +1,10 @@
+#+title: CTR bitflipping
+#+roam_tags:
+#+setupfile: ./setup.org
+
+* Notes
+- cipher text = "aaaaaaaaaaaaaaaaaaaa" XOR key
+- It's even simpler with CTR.
+- Just replace third block with: third block XOR "aaaaaaaaaaaaaaaaaaaa" XOR ";admin=true;aaaa"
+  - First XOR cancels out original plain text. Now the plain text is just null bytes
+  - Second XOR adds the token. The plain text has been edited to our liking.
