@@ -8,6 +8,8 @@ import string
 
 from Crypto.Cipher import AES
 
+from sha1 import SHA1
+
 logging.basicConfig()
 
 def solve_simple_xor(c: bytes) -> tuple:
@@ -298,3 +300,10 @@ class MT19937:
 
 def unix_time():
     return int(time.time())
+
+
+def sha1_keyed_hmac(message: bytes, key: bytes) -> bytes:
+    sha1 = SHA1()
+    sha1.update(key)
+    sha1.update(message)
+    return sha1.digest()
