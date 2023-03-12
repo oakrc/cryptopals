@@ -2,7 +2,8 @@
 from random import randint
 from secrets import token_bytes
 
-from mycrypto import MT19937, chop, unix_time, xor_rep
+from mycrypto import chop, unix_time, xor_rep
+from mycrypto.random import MT19937
 
 def rand_crypt(m: bytes, k: bytes) -> bytes:
     seed = int.from_bytes(k, 'big', signed=False)

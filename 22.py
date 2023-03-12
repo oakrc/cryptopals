@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from random import randint
 import time
-from mycrypto import MT19937
+from mycrypto.random import MT19937
 
 def unix_time():
     return int(time.time())

@@ -2,7 +2,7 @@
 import secrets
 import struct
 from mycrypto import sha1_keyed_hmac
-from sha1 import SHA1
+from mycrypto.hash import SHA1
 
 
 # ===========

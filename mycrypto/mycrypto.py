@@ -2,13 +2,13 @@
 import logging
 from base64 import b64decode
 from collections import Counter
-from pwn import p64
+from pwn import p64 # type: ignore
 import time
 import string
 
 from Crypto.Cipher import AES
 
-from sha1 import SHA1
+from .hash import SHA1
 
 logging.basicConfig()
 
@@ -93,18 +93,14 @@ def pad(m: bytes, bs: int = 16) -> bytes:
         return m
     return m + pad_len * bytes([pad_len])
 
-
-class PaddingError(Exception):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
-
-
+#
 # undo PKCS#7 padding
 def unpad(m: bytes) -> bytes:
     padding = m[-m[-1]:]
     if padding[:-1] != padding[1:]:
-        # raise PaddingError("Invalid padding")
+        # not padded, return as is
         return m
+    # TODO: check if all padding bytes are valid
     return m[:-m[-1]]
 
 
@@ -116,7 +112,7 @@ def chop(m: bytes, bs: int = 16) -> list[bytes]:
 
 def xor(a: bytes, b: bytes) -> bytes:
     if len(a) != len(b):
-        raise Exception("XORing bytes of unequal length is not allowed.")
+        raise ValueError("XORing bytes of unequal length is not allowed.")
     return bytes([i ^ j for i, j in zip(a, b)])
 
 
@@ -230,77 +226,8 @@ def solve_xor_rep_ks(c: bytes, ks: int) -> bytes:
     key = b''.join([solve_simple_xor(b)[1] for b in blocks])
     return key
 
-
-# 32-bit MT19937
-# See Wikipedia article for psuedocode
-class MT19937:
-    w, n, m, r = 32, 624, 397, 31
-    a = 0x9908b0df
-    u, d = 11, 0xffffffff
-    s, b = 7, 0x9d2c5680
-    t, c = 15, 0xefc60000
-    l = 18
-    f = 1812433253
-
-    def __init__(self, seed) -> None:
-        self.MT = [0] * self.n
-        self.index = self.n+1
-
-        self.lower_mask = (1 << self.r) - 1
-        self.upper_mask = self.lowest_bits(~self.lower_mask, self.w)
-
-        self.MT[0] = seed
-        for i in range(1, self.n - 1):
-            self.MT[i] = self.lowest_bits(self.f * (self.MT[i-1] ^ (self.MT[i-1] >> (self.w-2))) + i, self.w)
-
-    def twist(self):
-        for i in range(self.n):
-            x = (self.MT[i] & self.upper_mask) | (self.MT[(i+1) % self.n] & self.lower_mask)
-            xA = x >> 1
-            if (x % 2) != 0:
-                xA = xA ^ self.a
-            self.MT[i] = self.MT[(i + self.m) % self.n] ^ xA
-        self.index = 0
-        pass
-
-    def get(self):
-        if self.index >= self.n:
-            self.twist()
-        y = self.MT[self.index]
-        y = y ^ ((y >> self.u) & self.d)
-        y = y ^ ((y << self.s) & self.b)
-        y = y ^ ((y << self.t) & self.c)
-        y = y ^ (y >> self.l)
-
-        self.index += 1
-
-        k = (self.lowest_bits(y, self.w))
-        self.untemper(k)
-        return k
-
-    def lowest_bits(self, n: int, bits: int):
-        mask = (1 << bits) - 1
-        return n & mask
-
-    def untemper(self, y: int) -> int:
-        y ^= y >> self.l
-        y ^= (y << self.t & self.c)
-        # I tried... https://nayak.io/posts/mersenne_twister/
-        for i in range(1,5):
-            b = self.b & (0b1111111 << (i * 7))
-            y ^= (y << self.s & b)
-        for i in range(3):
-            y ^= y >> self.u
-        return y
-
-    def set(self, i: int, y: int):
-        self.MT[i] = y
-
-
-
 def unix_time():
     return int(time.time())
-
 
 def sha1_keyed_hmac(message: bytes, key: bytes) -> bytes:
     sha1 = SHA1()

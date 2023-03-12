@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #!/usr/bin/env python
-from md4 import MD4
+from mycrypto.hash import MD4
 import secrets
 import struct
 

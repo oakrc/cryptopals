@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from sha1 import SHA1
+from mycrypto.hash import SHA1
 import secrets
 
 def sha1_keyed_hmac(message: bytes, key: bytes) -> bytes:

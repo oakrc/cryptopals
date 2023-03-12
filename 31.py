@@ -7,7 +7,7 @@ from statistics import mean
 
 import requests
 
-from timingleakserver import TimingLeakServer
+from mycrypto.timing import TimingLeakServer, TimingLeakAttack
 
 
 def attack_max_average_delay(file: str = 'id_rsa', iters: int = 10, server_port: int = 8888, debug: bool = True):
@@ -144,5 +144,11 @@ if __name__ == '__main__':
 
     server_process.start()
     time.sleep(1)  # wait for server to start
-    attack_max_average_delay(file, 3, 8888, True)
+    # attack_max_average_delay(file, 3, 8888, True)
+    attack = TimingLeakAttack()
+    attack.estimate_delay_iters = 10
+    attack.improve_estimate_iters = 0
+    attack.guess_byte_iters = 1
+    attack.rush = True
+    attack.launch()
     server_process.terminate()
