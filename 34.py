@@ -4,33 +4,28 @@ import sys
 
 from typing import Any
 from math import ceil
-from asyncio import Lock, create_task, run, sleep
+from asyncio import create_task, run, sleep
 
 from Crypto.Hash import SHA1
 
 from mycrypto import aes_128_cbc_decrypt, aes_128_cbc_encrypt
 
-# [(addressee, data_tuple), ...]
+# {receiver: data_tuple or data, ...}
 messages: dict[str, Any] = dict()
-message_lock = Lock()
 
 async def send(sender, receiver, *data):
     # simulate MITM
     if sender != 'M':
         receiver = 'M'
-    await message_lock.acquire()
 
     if len(data) == 1:
         data = data[0]
     print(f'[*] {sender}->{receiver}: {data}')
     messages[receiver] = data
-    message_lock.release()
 
 async def receive(identity) -> Any:
     while True:
-        await message_lock.acquire()
         data = messages.pop(identity, None)
-        message_lock.release()
         if data is not None:
             return data
         await sleep(0.1)
