@@ -2,7 +2,7 @@
 import secrets
 import sys
 
-from typing import Any, Callable
+from typing import Any
 from math import ceil
 from asyncio import create_task, run, sleep
 
@@ -40,7 +40,7 @@ def session_key(s_: int) -> bytes:
 
 async def relay(recipient):
     data = await receive('M')
-    if type(data) != 'tuple':
+    if not isinstance(data, tuple):
         data = (data,)
     await send('M', recipient, *data)
     if len(data) == 1:
