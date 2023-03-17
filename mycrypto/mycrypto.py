@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import logging
+import time
+import string
+
 from base64 import b64decode
 from collections import Counter
 from pwn import p64 # type: ignore
-import time
-import string
+from math import ceil
 
 from Crypto.Cipher import AES
 
@@ -234,3 +236,10 @@ def sha1_keyed_hmac(message: bytes, key: bytes) -> bytes:
     sha1.update(key)
     sha1.update(message)
     return sha1.digest()
+
+
+def to_bytes(s_: int) -> bytes:
+    s: bytes = b'\x00'
+    if s_ != 0:
+        s = s_.to_bytes(ceil(s_.bit_length() / 8), 'big')
+    return s
