@@ -35,7 +35,7 @@ def rsa_decrypt(c_: bytes, d: int, n: int):
     return to_bytes(m)
 
 
-def rsa_generate_key_pair(keysize_bits : int, e: int):
+def rsa_generate_key_pair(keysize_bits : int, e: int = 65537):
     """Generates a RSA key pair [(e, n), (d, n)]"""
     if not isPrime(e):
         raise ValueError('e needs to be prime')
